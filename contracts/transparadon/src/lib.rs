@@ -11,15 +11,17 @@ impl TransparadonContract {
     }
 
     // Contribute to the fund, and store the address of the user who contributed
-    pub fn addContributor(env: Env, address: Address) {
-        // save the address of the user who deposited in a vec
-        const key: &str = "depositors";
-        let mut dep: Vec<Address> = env.storage().instance().get(&key).unwrap_or(vec![&env]);
-        let addition = vec![&env, address];
-        dep.append(&addition);
-
-        // Save the updated list of depositors back to storage
-        env.storage().instance().set(&key, &dep);
+    pub fn add_contributor(env: Env, contributor: Address) {
+        const key: &str = "contributors";
+        let mut contributors = env
+                    .storage()
+                    .instance()
+                    .get(&key)
+                    .unwrap_or(vec![&env, contributor.clone()]);
+                contributors.push_back(contributor);
+                env.storage()
+                    .instance()
+                    .set(&key, &contributors);
     }
 
 }
