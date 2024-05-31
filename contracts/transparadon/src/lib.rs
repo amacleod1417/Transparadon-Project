@@ -6,11 +6,6 @@ use soroban_sdk::{contract, contractimpl, vec, Address, Env, Symbol, Vec, logs};
 #[contract]
 pub struct TransparadonContract;
 
-pub struct Contributor {
-    address: Address,
-    voting_power: u64,
-}
-
 pub struct Candidate {
     address: Address,
     votes: u64,
@@ -24,8 +19,7 @@ pub struct DonationStage {
 impl TransparadonContract {
 
     pub fn donate(env: Env, amount: u64) {
-
-        logs::log(&format!("Donation of {} from {}", amount, env.caller()));
+        // logs::log(&format!("Donation of {} from {}", amount, env.caller()));
         if amount <= 0 {
             return;
         }
@@ -77,54 +71,57 @@ impl TransparadonContract {
     }
 
     // Voting 🔥
-    pub fn vote(env: Env, candidate: Address, voting_power: u64) {
-        // check if address is a valid contributor
+    pub fn vote(env: Env, candidate: Addressu64) {
+        // how much power does the current voter have?
+        env.storage()
+            .instance()
+            .get(&"candidate")
+            .unwrap_or(map![&env, (env.)]);
+
         env.current_contract_address();
         let mut contributors: Vec<Address> = env
             .storage()
             .instance()
             .get(&"contributors")
             .unwrap_or(vec![&env]);
-        let mut is_contributor = false;
+
+        let mut found = false;
         for c in contributors.iter() {
             if c == candidate {
-                is_contributor = true;
+                found = true;
                 break;
             }
         }
-        if !is_contributor || voting_power == 0 {
+        if !found {
             return;
         }
 
         let mut voting_power = TransparadonContract::calculate_quadratic_voting_power(voting_power);
-        const KEY: &str = "candidates";
-        let mut contributors: Vec<Address> = env
-            .storage()
-            .instance()
-            .get(&KEY)
-            .unwrap_or(vec![&env]);
-        if voting_power == 0 || contributors.is_empty(){
-            return;
-        }
-        // find the candidate
-        let mut candidate: Option<Candidate> = None;
-        for c in contributors.iter() {
-            if c == candidate {
-                candidate = Some(c);
-                break;
-            }
-        }
-
-        if candidate.is_none() {
+        // update contributor stats:
+        // fella is tryna do nothing, or is not a contributor
+        if voting_power <= 0 || contributors.is_empty(){
             return;
         }
 
-        // subtract the voting power from the contributor
+        // add the voting power to the contributor
         let mut contributors: Vec<Address> = env
             .storage()
             .instance()
             .get(&"contributors")
-            .unwrap_or(vec![&env, env.current_contract_address().clone()]);
+            .unwrap_or(vec![&env]);
+        let mut new_contributors: Vec<Address> = vec![&env];
+        // create or update the contributor
+
+        for c in contributors.iter() {
+            if c == env.current_contract_address() {
+                new_contributors.push_back(Contributor {
+                    address:
+                    voting_power: voting_power,
+                });
+            } else {
+                new_contributors.push_back(c.clone());
+            }
+        }
 
     }
 
