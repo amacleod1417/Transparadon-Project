@@ -14,11 +14,14 @@ impl TransparadonContract {
     pub fn addContributor(env: Env, address: Address) {
         // save the address of the user who deposited in a vec
         const key: &str = "depositors";
-        let dep: Vec<Address> = env.storage().instance().get(&key).unwrap_or(vec![&env]);
-        let newDepositors:Vec<Address> = vec![&env, address];
-        newDepositors.append(&newDepositors);
+        let mut dep: Vec<Address> = env.storage().instance().get(&key).unwrap_or(vec![&env]);
+        let addition = vec![&env, address];
+        dep.append(&addition);
+
+        // Save the updated list of depositors back to storage
         env.storage().instance().set(&key, &dep);
     }
+
 }
 
 mod test;
