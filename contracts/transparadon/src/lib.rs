@@ -12,16 +12,16 @@ impl TransparadonContract {
 
     // Contribute to the fund, and store the address of the user who contributed
     pub fn add_contributor(env: Env, contributor: Address) {
-        const key: &str = "contributors";
+        const KEY: &str = "contributors";
         let mut contributors = env
                     .storage()
                     .instance()
-                    .get(&key)
+                    .get(&KEY)
                     .unwrap_or(vec![&env, contributor.clone()]);
                 contributors.push_back(contributor);
                 env.storage()
                     .instance()
-                    .set(&key, &contributors);
+                    .set(&KEY, &contributors);
     }
 
 }
