@@ -1,5 +1,4 @@
 #![no_std]
-use core::{f64::consts, ops::Add};
 
 use soroban_sdk::{contract,contracttype, contractimpl, vec, Address, Env, Symbol, Vec, logs};
 
@@ -28,7 +27,8 @@ pub enum DataKey {
     Admin,
     Initialized,
     IsContributor(Address),
-    VotingPower(Address)
+    VotingPower(Address),
+    Votes(Address)
 }
 
 
@@ -40,12 +40,12 @@ impl TransparadonContract {
         if amount <= 0 {
             panic!("Nah")
         }
-        // check if address is a valid contributor
-        let  contributors: Vec<Address> = env
-            .storage()
-            .instance()
-            .get(&"contributors")
-            .unwrap_or(vec![&env]);
+        // // check if address is a valid contributor
+        // let  contributors: Vec<Address> = env
+        //     .storage()
+        //     .instance()
+        //     .get(&"contributors")
+        //     .unwrap_or(vec![&env]);
         let  is_contributor: bool = env.storage().instance().get(&DataKey::IsContributor((user.clone()))).unwrap_or(false);
 
         if is_contributor != true { // wait what
@@ -62,7 +62,7 @@ impl TransparadonContract {
             env.storage()
                 .instance()
                 .set(&"contributors", &contributors);
-            Self::record_impact(user)
+            Self::record_impact(env, user)
     }
 
     // try with 1000001 lol
@@ -86,40 +86,34 @@ impl TransparadonContract {
     
     pub fn vote(env: Env,user : Address) {
         // how much power does the current voter have?
-        env.storage();
+        env.storage()
             .instance()
-            .get(&candidatecandidate)
-            .unwrap_or(map![&env, (env.)]);
-
-        let mut contributors: Vec<Address> = env
-            .storage()
-            .instance()
-            .get(&DataKey::Contributors)
-            .unwrap_or(vec![&env]);
-
-        let mut found = false;
-        let  is_contributor: bool = env.storage().instance().get(&DataKey::IsContributor((user.clone()))).unwrap_or(false);
-
-        
+            .get(&DataKey::VotingPower(user.clone()))
+            .unwrap_or(0);        
 
         // let mut voting_power = TransparadonContract::calculate_quadratic_voting_power(voting_power);
         // update contributor stats:
         // fella is tryna do nothing, or is not a contributor
         // if voting_power <= 0 || contributors.is_empty(){
-        //     return;
+        //     return;s
         // }
+
+        let voting_power = env.storage().instance().get(&DataKey::VotingPower((user.clone()))).unwrap_or(0);
+        let  is_contributor: bool = env.storage().instance().get(&DataKey::IsContributor((user.clone()))).unwrap_or(false);
 
         // add the voting power to the contributor
         let mut contributors: Vec<Address> = env
             .storage()
             .instance()
-            .get(&"contributors")
+            .get(&DataKey::Contributors)
             .unwrap_or(vec![&env]);
+        env.storage().instance().set(&DataKey::Votes((user)), &1)
         // let mut new_contributors: Vec<Address> = vec![&env];
         // let mut voting_power: u64;
         
-            contributors.push_back(user);
-            env.storage().instance().set(&DataKey::Contributors, &contributors);
+            // contributors.push_back(user);
+            // env.storage().instance().set(&DataKey::Contributors, &contributors);
+            
     }
 
     // Contribute to the fund, and store the address of the user who contributed
@@ -156,7 +150,7 @@ impl TransparadonContract {
             .instance()
             .set(&CONT_KEY, &empty);
     }
-pub fn get_recipient_balance(env: Env, user: Address, token:Address ) -> u64 {
+pub fn get_recipient_balance(env: Env, user: Address, token:Address ) -> i128 {
     token::Client::new(&env, &token ).balance(&user)
  }
     
@@ -180,9 +174,10 @@ pub fn get_recipient_balance(env: Env, user: Address, token:Address ) -> u64 {
 //     Ok(())
 // }
 
-fn record_impact( user: Address) -> Symbol {
-    env.storge.instance().set(DataKey::IsContributor(user), &true);
-    Symbol::new(env, "Thanks Chief")
+fn record_impact(env: Env, user: Address) -> Symbol {
+
+    env.storage().instance().set(&DataKey::IsContributor(user), &true);
+    Symbol::new(&env, "Thanks Chief")
 }
 
 }
