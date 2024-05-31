@@ -11,7 +11,7 @@ struct Donation {
 }
 
 // Function to record the impact of a donation on Stellar
-async fn record_impact_on_stellar(donation: Donation, source_keypair: &Keypair, server: &Server) -> Result<(), Box<dyn Error>> {
+ fn record_impact_o_stellar(donation: Donation, source_keypair: &Keypair, server: &Server) -> Result<(), Box<dyn Error>> {
     let transaction = TransactionBuilder::new(server.account(&source_keypair.public_key()).await?, Network::Test)
         .add_operation(Operation::Payment(
             stellar_sdk::PaymentOp {
@@ -31,7 +31,7 @@ async fn record_impact_on_stellar(donation: Donation, source_keypair: &Keypair, 
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     let server = Server::horizon_testnet();
     let source_secret = "GBGWWAKCWIRABCTBTP2OLUMM34JGTQ2G5N5ZZ5MED4XERD3Q7CA5INYQ";
     let source_keypair = Keypair::from_secret(source_secret)?;
