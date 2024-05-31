@@ -4,7 +4,26 @@ use num_traits::{Zero, One};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::cmp::Ordering;
-use tokio::time::Duration;
+use async_std::task::sleep;
+use std::time::Duration;
+
+#[derive(Debug, Deserialize)]
+struct Donation {
+    charity: String,
+    amount: BigUint,
+    name: String,
+    email: String,
+    wallet_address: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct Vote {
+    charity: String,
+    votes: u32,
+}
+
+type CharityVotes = Arc<Mutex<HashMap<String, BigUint>>>;
+
 
 // Function to get account balance from the Stellar network
 async fn get_account_balance(server: &Server, keypair: &Keypair) -> Result<u64, stellar_sdk::Error> {
@@ -65,8 +84,33 @@ fn allocate_funds(charity_votes: &HashMap<String, BigUint>, total_funds: BigUint
     for (charity, votes) in charity_votes.iter() {
         let proportion = votes * &total_funds / &total_votes;
         println!("Allocating {} to charity {}", proportion, charity);
-        // Actual transaction logic to transfer proportion amount to charity 
+        // Actual transaction logic to transfer `proportion` amount to `charity` would be implemented here.
     }
+}
+
+#[post("/donate", data = "<donation>")]
+async fn donate(donation: Json<Donation>, server: &State<Server>) -> Json<&'static str> {
+    // Implement logic to process donation and interact with Stellar blockchain
+    Json("Donation recorded")
+}
+
+#[post("/vote", data = "<votes>")]
+async fn vote_endpoint(votes: Json<HashMap<String, u32>>, server: &State<Server>, charity_votes: &State<CharityVotes>) -> Json<&'static str> {
+    let votes = votes.into_inner();
+    let mut votes_lock = charity_votes.lock().unwrap();
+    for (charity, vote_count) in votes.iter() {
+        let counter = votes_lock.entry(charity.clone()).or_insert(BigUint::zero());
+        *counter += BigUint::from(*vote_count);
+    }
+    Json("Votes recorded")
+}
+
+#[launch]
+fn rocket() -> _ {
+    rocket::build()
+        .manage(Server::horizon_testnet())
+        .manage(Arc::new(Mutex::new(HashMap::<String, BigUint>::new())))
+        .mount("/", routes![donate, vote_endpoint])
 }
 
 async fn main_async() -> Result<(), Box<dyn std::error::Error>> {
@@ -110,16 +154,15 @@ async fn main_async() -> Result<(), Box<dyn std::error::Error>> {
     let votes = charity_votes.lock().unwrap();
     let total_votes: BigUint = votes.values().sum();
     if total_votes >= BigUint::from(100u64) {
-        println!("100 'yes' votes reached! Proceeding with allowing the charity...");
+        println!("100 'yes' votes reached! Proceeding with allocating the donation pool");
         allocate_funds(&votes, BigUint::from(1000u64)); // Example total funds to allocate
     }
 
     Ok(())
 }
 
-#[tokio::main]
-async fn main() {
-    if let Err(e) = main_async().await {
+fn main() {
+    if let Err(e) = async_std::task::block_on(main_async()) {
         eprintln!("Error: {}", e);
     }
 }
