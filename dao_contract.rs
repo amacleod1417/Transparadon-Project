@@ -1,8 +1,10 @@
 use stellar_sdk::{Keypair, Network, Operation, TransactionBuilder, Server};
 use num_bigint::BigUint;
 use num_traits::{Zero, One};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 use std::cmp::Ordering;
-use tokio::time::{delay_for, Duration};
+use tokio::time::Duration;
 
 // Function to get account balance from the Stellar network
 async fn get_account_balance(server: &Server, keypair: &Keypair) -> Result<u64, stellar_sdk::Error> {
@@ -15,15 +17,13 @@ async fn get_account_balance(server: &Server, keypair: &Keypair) -> Result<u64, 
     Err(stellar_sdk::Error::Custom("Native balance not found".to_string()))
 }
 
+// Function to calculate quadratic voting power based on donation amount
 fn calculate_quadratic_voting_power(donation_amount: &BigUint) -> BigUint {
     if donation_amount.is_zero() {
         return BigUint::zero();
     }
 
-    // Initial guess for the square root
     let mut guess = donation_amount.clone() / BigUint::from(2u32) + BigUint::one();
-
-    // Babylonian method for square root calculation
     let mut sqrt_num = guess.clone();
     let mut sqrt_num1 = BigUint::zero();
     loop {
@@ -39,73 +39,80 @@ fn calculate_quadratic_voting_power(donation_amount: &BigUint) -> BigUint {
 }
 
 // Function to asynchronously vote
-async fn vote(server: &Server, source_keypair: &Keypair, voting_power: &BigUint) -> Result<(), stellar_sdk::Error> {
-    // Build transaction
+async fn vote(server: &Server, source_keypair: &Keypair, charity_votes: Arc<Mutex<HashMap<String, BigUint>>>, charity: &str, voting_power: &BigUint) -> Result<(), stellar_sdk::Error> {
     let transaction = TransactionBuilder::new(server.account(&source_keypair.public_key()).await?, Network::Test)
         .add_operation(Operation::Payment(
             stellar_sdk::PaymentOp {
-                destination: "GBGWWAKCWIRABCTBTP2OLUMM34JGTQ2G5N5ZZ5MED4XERD3Q7CA5INYQ".to_string(),
+                destination: charity.to_string(),
                 asset: stellar_sdk::Asset::new_native(),
-                amount: voting_power.to_string().parse().unwrap(), // Use voting power directly as the amount
+                amount: voting_power.to_string().parse().unwrap(),
             },
         ))
         .build();
 
-    // Sign transaction
     let signed_transaction = transaction.sign(&[&source_keypair]);
-
-    // Submit transaction to the Stellar network
     server.submit_transaction(&signed_transaction).await?;
+
+    let mut votes = charity_votes.lock().unwrap();
+    *votes.entry(charity.to_string()).or_insert(BigUint::zero()) += voting_power.clone();
+
     Ok(())
 }
 
-async fn main_async() -> Result<(), Box<dyn std::error::Error>> {
-    // Initialize Stellar server (Testnet in this example)
-    let server = Server::horizon_testnet();
+// Function to allocate the funds based on the votes
+fn allocate_funds(charity_votes: &HashMap<String, BigUint>, total_funds: BigUint) {
+    let total_votes: BigUint = charity_votes.values().sum();
+    for (charity, votes) in charity_votes.iter() {
+        let proportion = votes * &total_funds / &total_votes;
+        println!("Allocating {} to charity {}", proportion, charity);
+        // Actual transaction logic to transfer proportion amount to charity 
+    }
+}
 
-    // Secret key of the source account
-    let source_secret = "GBVK3AJD4GXJ22ZB3JFC27LBUOQWGSHOTN7WHRR2OH42HXJWQFTHL26X"; // alice or source account key
+async fn main_async() -> Result<(), Box<dyn std::error::Error>> {
+    let server = Server::horizon_testnet();
+    let source_secret =   "GBGWWAKCWIRABCTBTP2OLUMM34JGTQ2G5N5ZZ5MED4XERD3Q7CA5INYQ"; // alice/receivers key
     let source_keypair = Keypair::from_secret(source_secret)?;
 
-    // Check source account balance
-    let balance_threshold: u64 = 100; // Minimum balance required
+    let balance_threshold: u64 = 100;
     let source_balance = get_account_balance(&server, &source_keypair).await?;
 
-    // Ensure source account has enough balance
     if source_balance < balance_threshold {
         println!("Source account does not have sufficient balance to perform the transaction.");
         return Ok(());
     }
 
-    // Example donation amount (this should be dynamically obtained in a real application)
     let donation_amount = BigUint::from(123456u64);
     let voting_power = calculate_quadratic_voting_power(&donation_amount);
     println!("Voting power: {}", voting_power);
 
-    // Counter for "yes" votes
-    let yes_votes = Arc::new(Mutex::new(BigUint::zero()));
+    let charity_votes = Arc::new(Mutex::new(HashMap::new()));
+    let charities = vec![
+        "GBGWWAKCWIRABCTBTP2OLUMM34JGTQ2G5N5ZZ5MED4XERD3Q7CA5INYQ",
+        "GCGGWAKCWIRABCTBTP2OLUMM34JGTQ2G5N5ZZ5MED4XERD3Q7CA5INYR"
+    ];
 
-    // Asynchronously vote
-        match vote(&server, &source_keypair, &voting_power).await {
-            Ok(_) => {
-                println!("Vote transaction successful.");
+    let mut charity_votes_map = HashMap::new();
+    for charity in &charities {
+        charity_votes_map.insert(charity.to_string(), BigUint::from(0u64));
+    }
+    let charity_votes = Arc::new(Mutex::new(charity_votes_map));
 
-                // Increment the yes vote counter
-                let mut votes = yes_votes.lock().unwrap();
-                *votes += voting_power.clone();
-                println!("Current 'yes' votes: {}", votes);
-
-                // Check if the number of "yes" votes has reached 100
-                if *votes >= BigUint::from(100u64) {
-                    println!("100 'yes' votes reached! Proceeding with allowing the charity");
-                   
-                    break;
-                }
-            },
-            Err(e) => eprintln!("Vote transaction failed: {}", e),
+    // Vote for each charity once based on user's allocation of votes
+    for charity in &charities {
+        match vote(&server, &source_keypair, Arc::clone(&charity_votes), charity, &voting_power).await {
+            Ok(_) => println!("Vote transaction for charity {} successful.", charity),
+            Err(e) => eprintln!("Vote transaction for charity {} failed: {}", charity, e),
         }
-        sleep(Duration::from_secs(10)).await;
+    }
 
+    // Check if the number of "yes" votes has reached 100
+    let votes = charity_votes.lock().unwrap();
+    let total_votes: BigUint = votes.values().sum();
+    if total_votes >= BigUint::from(100u64) {
+        println!("100 'yes' votes reached! Proceeding with allowing the charity...");
+        allocate_funds(&votes, BigUint::from(1000u64)); // Example total funds to allocate
+    }
 
     Ok(())
 }
