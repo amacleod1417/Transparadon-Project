@@ -1,26 +1,81 @@
-# Soroban Project
+Transparadon
+Table of Contents
+Introduction
+Features
+Technology Stack
+Installation
+Usage
+Contributing
+License
+Contact
+Introduction
+Transparadon is a decentralized charity donation platform designed to bring transparency, accountability, and efficiency to the world of charitable giving. Built on the Soroban smart contract platform on the Stellar blockchain, Transparadon ensures that all donations are tracked and verifiable, providing donors with confidence that their contributions are making a real impact.
 
-## Project Structure
+Features
+Decentralized Donations: Enable secure and transparent donation transactions using blockchain technology.
+Smart Contracts: Automate the distribution of funds to ensure they reach the intended recipients.
+Real-Time Tracking: Allow donors to track their donations in real-time.
+Low Transaction Fees: Minimize costs associated with traditional payment methods.
+Transparency Reports: Generate detailed reports on the use and impact of donations.
+Anonymity Options: Allow donors to choose between anonymous and public donations.
+Global Accessibility: Support donations from anywhere in the world.
+Technology Stack
+Frontend: React.js
+Backend: Node.js, Express.js
+Blockchain: Stellar, Soroban for smart contracts
+Database: MongoDB
+Authentication: JWT, Stellar wallet integration
+APIs: Stellar SDK, Soroban SDK for blockchain interactions
+Installation
+To set up Transparadon locally, follow these steps:
 
-This repository uses the recommended structure for a Soroban project:
-```text
-.
-├── contracts
-│   └── hello_world
-│       ├── src
-│       │   ├── lib.rs
-│       │   └── test.rs
-│       └── Cargo.toml
-├── Cargo.toml
-└── README.md
-```
+Clone the repository:
 
-- New Soroban contracts can be put in `contracts`, each in their own directory. There is already a `hello_world` contract in there to get you started.
-- If you initialized this project with any other example contracts via `--with-example`, those contracts will be in the `contracts` directory as well.
-- Contracts should have their own `Cargo.toml` files that rely on the top-level `Cargo.toml` workspace for their dependencies.
-- Frontend libraries can be added to the top-level directory as well. If you initialized this project with a frontend template via `--frontend-template` you will have those files already included.
+sh
+Copy code
+git clone https://github.com/yourusername/transparadon.git
+cd transparadon
+Install dependencies:
 
-![image](https://github.com/onkr0d/transparadon/assets/155204136/8e34d122-2df3-4011-b89d-09499b406134)
-![image](https://github.com/onkr0d/transparadon/assets/155204136/a495ce3b-22a7-4c72-a6c6-b36976b45c0c)
-![image](https://github.com/onkr0d/transparadon/assets/155204136/181bb428-c355-4d03-9c01-4b8b4fd5dc0c)
+sh
+Copy code
+npm install
+Set up environment variables:
+Create a .env file in the root directory and add the following:
 
+makefile
+Copy code
+NODE_ENV=development
+PORT=3000
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+STELLAR_NETWORK=testnet (or public)
+Run the development server:
+
+sh
+Copy code
+npm run dev
+Deploy the smart contracts:
+Follow the Soroban CLI instructions to deploy your smart contracts to the Stellar testnet or public network.
+
+Usage
+Once the platform is set up, you can start using Transparadon to make and manage donations.
+
+Register/Login:
+
+Use a Stellar wallet to connect your account.
+Register an account or log in using your wallet.
+Make a Donation:
+
+Browse the list of verified charities.
+Select a charity and enter the donation amount.
+Confirm the transaction using your Stellar wallet.
+Track Donations:
+
+Visit the 'My Donations' section to see the status and impact of your donations.
+Access detailed reports for transparency.
+
+License
+Transparadon is licensed under the MIT License. See the LICENSE file for more information.
+
+Thank you for contributing to a more transparent and effective charitable giving ecosystem with Transparadon!
