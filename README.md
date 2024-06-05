@@ -3,25 +3,40 @@ Transparadon is a decentralized charity donation platform designed to bring tran
 
 ![TransparaDon](https://github.com/onkr0d/transparadon/assets/155204136/2aed2768-4064-486b-a42e-f1a7ee2cbc5a)
 
-Features
+Features:
+
 Decentralized Donations: Enable secure and transparent donation transactions using blockchain technology.
+
 Smart Contracts: Automate the distribution of funds to ensure they reach the intended recipients.
+
 Real-Time Tracking: Allow donors to track their donations in real-time.
+
 Low Transaction Fees: Minimize costs associated with traditional payment methods.
+
 Transparency Reports: Generate detailed reports on the use and impact of donations.
+
 Anonymity Options: Allow donors to choose between anonymous and public donations.
+
 Global Accessibility: Support donations from anywhere in the world.
+
 Community Pool Donations: Donate to a community pool where quadratic voting determines the allocation of funds.
 
-Technology Stack
+Technology Stack:
+
 Frontend: React.js
+
 Backend: Node.js, Express.js
+
 Blockchain: Stellar, Soroban for smart contracts
+
 Database: MongoDB
+
 Authentication: JWT, Stellar wallet integration
+
 APIs: Stellar SDK, Soroban SDK for blockchain interactions
 
-Installation
+Installation:
+
 To set up Transparadon locally, follow these steps:
 
 Clone the repository:
