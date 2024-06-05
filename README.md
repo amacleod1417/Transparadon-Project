@@ -1,12 +1,7 @@
 
 Transparadon is a decentralized charity donation platform designed to bring transparency, accountability, and efficiency to the world of charitable giving. Built on the Soroban smart contract platform on the Stellar blockchain, Transparadon ensures that all donations are tracked and verifiable, providing donors with confidence that their contributions are making a real impact.
 
-![image](https://github.com/onkr0d/transparadon/assets/155204136/e63b87ab-01f2-48cf-91d2-e8b6dc0cc0a8)
-![image](https://github.com/onkr0d/transparadon/assets/155204136/3a025acf-b328-4724-8d83-5049f71e05e0)
-![image](https://github.com/onkr0d/transparadon/assets/155204136/5c1b9d1b-cffa-4643-ae60-7357a9c9e563)
-
-
-
+![TransparaDon](https://github.com/onkr0d/transparadon/assets/155204136/2aed2768-4064-486b-a42e-f1a7ee2cbc5a)
 
 Features
 Decentralized Donations: Enable secure and transparent donation transactions using blockchain technology.
