@@ -28,7 +28,10 @@ pub enum DataKey {
     Initialized,
     IsContributor(Address),
     VotingPower(Address),
-    Votes(Address)
+    CharityVotes(Address),
+    DistributionSchedule,
+    Reports,
+    DonationImpact,
 }
 
 
@@ -38,7 +41,7 @@ impl TransparadonContract {
     pub fn donate(env: Env, amount: u64, user: Address) ->Symbol {
         // logs::log(&format!("Donation of {} from {}", amount, env.caller()));
         if amount <= 0 {
-            panic!("Nah")
+            panic!("Invalid donation amount")
         }
         // // check if address is a valid contributor
         // let  contributors: Vec<Address> = env
@@ -49,23 +52,22 @@ impl TransparadonContract {
         let  is_contributor: bool = env.storage().instance().get(&DataKey::IsContributor((user.clone()))).unwrap_or(false);
 
         if is_contributor != true { // wait what
-            panic!("waiiiiit")
+            panic!("User is not a valid contributor")
         }
 
         // add their address to the contributors list
         let mut contributors: Vec<Address> = env
                 .storage()
                 .instance()
-                .get(&"contributors")
+                .get(&DataKey::Contributors)
                 .unwrap_or(vec![&env, env.current_contract_address()]);
             contributors.push_back(user.clone());
             env.storage()
                 .instance()
-                .set(&"contributors", &contributors);
-            Self::record_impact(env, user)
+                .set(&DataKey::Contributors, &contributors);
+            Self::record_impact(env, user, amount)
     }
 
-    // try with 1000001 lol
     pub fn calculate_quadratic_voting_power(value: u64) -> u64 {
         if value == 0 {
             return 0;
@@ -84,22 +86,22 @@ impl TransparadonContract {
 
     // Voting 🔥
     
-    pub fn vote(env: Env,user : Address) {
+    pub fn vote(env: Env, user : Address, charity: Address, votes: u64) {
         // how much power does the current voter have?
-        env.storage()
-            .instance()
-            .get(&DataKey::VotingPower(user.clone()))
-            .unwrap_or(0);        
-
-        // let mut voting_power = TransparadonContract::calculate_quadratic_voting_power(voting_power);
-        // update contributor stats:
-        // fella is tryna do nothing, or is not a contributor
-        // if voting_power <= 0 || contributors.is_empty(){
-        //     return;s
-        // }
+        // env.storage()
+        //     .instance()
+        //     .get(&DataKey::VotingPower(user.clone()))
+        //     .unwrap_or(0);        
 
         let voting_power = env.storage().instance().get(&DataKey::VotingPower((user.clone()))).unwrap_or(0);
+        if voting_power == 0 || votes > voting_power {
+            panic!("User has insufficient voting power");
+        }
+
         let  is_contributor: bool = env.storage().instance().get(&DataKey::IsContributor((user.clone()))).unwrap_or(false);
+        if !is_contributor {
+            panic!("User is not a valid contributor")
+        }
 
         // add the voting power to the contributor
         let mut contributors: Vec<Address> = env
@@ -107,27 +109,41 @@ impl TransparadonContract {
             .instance()
             .get(&DataKey::Contributors)
             .unwrap_or(vec![&env]);
-        env.storage().instance().set(&DataKey::Votes((user)), &1)
-        // let mut new_contributors: Vec<Address> = vec![&env];
-        // let mut voting_power: u64;
-        
-            // contributors.push_back(user);
-            // env.storage().instance().set(&DataKey::Contributors, &contributors);
-            
+        env.storage().instance().set(&DataKey::CharityVotes((user)), &1);
+
+        let charity_votes: u64 =
+            env
+            .storage()
+            .instance()
+            .get(DataKey::CharityVotes(charity.clone()))
+            .unwrap_or(0);
+            env
+            .storage()
+            .instance()
+            .set(&DataKey::CharityVotes(charity), &(charity_votes+votes));
+            env
+            .storage()
+            .instance()
+            .set(DataKey::VotingPower(user.clone()), &(voting_power-votes));
+
+        logs::log(&format!("User {} voted {} for charity {}", user, votes, charity));
     }
 
     // Contribute to the fund, and store the address of the user who contributed
     pub fn add_contributor(env: Env, contributor: Address) {
-        const KEY: &str = "contributors";
+       // const KEY: &str = "contributors";
         let mut contributors = env
                     .storage()
                     .instance()
-                    .get(&KEY)
-                    .unwrap_or(vec![&env, contributor.clone()]);
-                contributors.push_back(contributor);
+                    .get(&DataKey::Contributors)
+                    .unwrap_or(vec![&env]);
+                contributors.push_back(contributor.clone());
                 env.storage()
                     .instance()
-                    .set(&KEY, &contributors);
+                    .set(&DataKey::Contributors, &contributors);
+                env.storage()
+                    .instance()
+                    .set(&DataKey::IsContributor(contributor), &true);
     }
 
     pub fn increment_generation(env: Env) {
@@ -150,34 +166,84 @@ impl TransparadonContract {
             .instance()
             .set(&CONT_KEY, &empty);
     }
+
 pub fn get_recipient_balance(env: Env, user: Address, token:Address ) -> i128 {
     token::Client::new(&env, &token ).balance(&user)
  }
-    
-// // Function to record the impact of a donation on Stellar
-// fn record_impact_o_stellar(donation: Donation, source_keypair: &Keypair, server: &Server) -> Result<(), Box<dyn Error>> {
-//     let transaction = TransactionBuilder::new(server.account(&source_keypair.public_key()).await?, Network::Test)
-//         .add_operation(Operation::Payment(
-//             stellar_sdk::PaymentOp {
-//                 destination: "GAUVOIKWKB2E7T5RNZPQTWYXHMPN23A7YZR76Y5SCOGQOQUL3GKFPIRN".to_string(), //stellar wallet address
-//                 asset: stellar_sdk::Asset::new_native(),
-//                 amount: donation.amount.to_string().parse()?,
-//             },
-//         ))
-//         .memo(stellar_sdk::Memo::Text(format!("Charity: {}; Impact: {}", donation.charity, donation.impact_description)))
-//         .build();
 
-//     let signed_transaction = transaction.sign(&[&source_keypair]);
-//     server.submit_transaction(&signed_transaction).await?;
+ pub fn set_distribution_schedule(env: Env, schedule: Vec<(Address, u64)>) {
+    env.storage()
+        .instance()
+        .set(DataKey::DistributionSchedule, &schedule);
+ }
+ 
+ pub fn distribute_funds(env: Env, total_funds: u64) {
+    let charities: Vec<Address>
+        env
+        .storage()
+        .instance()
+        .get(&DataKey::Contributors)
+        .unwrap_or(0);
+    let mut total_votes: u64 = 0;
 
-//     println!("Impact of donation recorded on the Stellar blockchain: {:?}", donation);
-//     Ok(())
-// }
+    for charity in charities.iter() {
+        let charity_votes: u64 =
+        env
+        .storage()
+        .instance()
+        .get(&DataKey::CharityVotes(charity.clone()))
+        .unwrap_or(0);
+        
+        if total_votes > 0 {
+            let share: u64 = (charity_votes as f64 / total_votes as f64 * total_funds as f64) as u64;
+            token::Client::new(&env, &token_address).transfer(&env.current_contract_address(), &chartiy, share);
+            logs::log(&format!("Distributed {} to {}", share, charity));
+        }
+    }
+ }
 
-fn record_impact(env: Env, user: Address) -> Symbol {
+ pub fn generate_report(env: Env, generation: u64) -> Symbol {
+    let contributors: Vec<Address> =
+        env
+        .storage()
+        .instance()
+        .get(&DataKey::Contributors)
+        .unwrap_or(vec![&env]);
+    let total_contributors: u64 = contributors.iter().map(|c| {
+        env
+        .storage()
+        .instance()
+        .set(&DataKey::Contributions(c.clone()))
+        .unwrap_or(0)
+    }).sum();
+
+    let report = format!("Generation {}: Total Contributions: {}", generation, total_contributions);
+        env
+        .storage()
+        .instance()
+        .set(DataKey::Reports, &report);
+    Symbol::new(&env, "Report Generated")
+ }
+
+ pub fn get_report(env: Env, user: Address, amount: u64) -> Symbol {
+    let report: String = 
+    env
+    .storage()
+    .instance()
+    .get(&DataKey::Reports)
+    .unwrap_or(String::new());
+Symbol::new(&env, &report)
+ }
+
+fn record_impact(env: Env, user: Address, amount: u64) -> Symbol {
 
     env.storage().instance().set(&DataKey::IsContributor(user), &true);
-    Symbol::new(&env, "Thanks Chief")
+
+    let current_contribution: u64=
+    env.storage()
+    .instance()
+    .set(&DataKey::Contributions(user.clone()), &(current_contribution + amount));
+Symbol::new(&env, "Thanks Chief")
 }
 
 }
