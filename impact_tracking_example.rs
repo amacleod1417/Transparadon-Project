@@ -11,7 +11,7 @@ struct Donation {
 }
 
 // Function to record the impact of a donation on Stellar
- fn record_impact_o_stellar(donation: Donation, source_keypair: &Keypair, server: &Server) -> Result<(), Box<dyn Error>> {
+ fn record_impact_on_stellar(donation: Donation, source_keypair: &Keypair, server: &Server) -> Result<(), Box<dyn Error>> {
     let transaction = TransactionBuilder::new(server.account(&source_keypair.public_key()).await?, Network::Test)
         .add_operation(Operation::Payment(
             stellar_sdk::PaymentOp {

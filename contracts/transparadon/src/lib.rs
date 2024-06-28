@@ -43,12 +43,7 @@ impl TransparadonContract {
         if amount <= 0 {
             panic!("Invalid donation amount")
         }
-        // // check if address is a valid contributor
-        // let  contributors: Vec<Address> = env
-        //     .storage()
-        //     .instance()
-        //     .get(&"contributors")
-        //     .unwrap_or(vec![&env]);
+
         let  is_contributor: bool = env.storage().instance().get(&DataKey::IsContributor((user.clone()))).unwrap_or(false);
 
         if is_contributor != true { // wait what
@@ -87,11 +82,7 @@ impl TransparadonContract {
     // Voting 🔥
     
     pub fn vote(env: Env, user : Address, charity: Address, votes: u64) {
-        // how much power does the current voter have?
-        // env.storage()
-        //     .instance()
-        //     .get(&DataKey::VotingPower(user.clone()))
-        //     .unwrap_or(0);        
+        // how much power does the current voter have?       
 
         let voting_power = env.storage().instance().get(&DataKey::VotingPower((user.clone()))).unwrap_or(0);
         if voting_power == 0 || votes > voting_power {
@@ -178,7 +169,7 @@ pub fn get_recipient_balance(env: Env, user: Address, token:Address ) -> i128 {
  }
  
  pub fn distribute_funds(env: Env, total_funds: u64) {
-    let charities: Vec<Address>
+    let charities: Vec<Address> =
         env
         .storage()
         .instance()
@@ -193,9 +184,18 @@ pub fn get_recipient_balance(env: Env, user: Address, token:Address ) -> i128 {
         .instance()
         .get(&DataKey::CharityVotes(charity.clone()))
         .unwrap_or(0);
-        
+        total_votes += charity_votes;
+    }
+    for charity in chariteies.iter() { 
+        let charity_votes: u64 =
+        env
+        .storage()
+        .instance()
+        .get(&DataKey::CharityVotes(charity.clone()))
+        .unwrap_or(0);
         if total_votes > 0 {
             let share: u64 = (charity_votes as f64 / total_votes as f64 * total_funds as f64) as u64;
+            let token_address = env.storage().instance().get(DataKey::Token).unwrap();
             token::Client::new(&env, &token_address).transfer(&env.current_contract_address(), &chartiy, share);
             logs::log(&format!("Distributed {} to {}", share, charity));
         }
