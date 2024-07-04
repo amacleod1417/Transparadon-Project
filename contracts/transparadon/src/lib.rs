@@ -61,7 +61,7 @@ impl TransparadonContract {
                 .instance()
                 .set(&DataKey::Contributors, &contributors);
             Self::record_impact(env, user, amount)
-    }
+    } 
 
     pub fn calculate_quadratic_voting_power(value: u64) -> u64 {
         if value == 0 {
