@@ -161,16 +161,27 @@ nav{
   padding: 15%;
 }
 
+.marker {
+  margin: 10%;
+}
+
 .footer-wrapper {
   max-width: 1600px;
   margin: 0 auto;
-  margin-top: 100px;
+  margin-top: 20px;
   height: 100%;
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .contact {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-wrap: wrap;
+  color: lightgray;
+  margin-bottom: 50px;
+}
+
+.rights {
+  color: lightgray;
+  margin-bottom: 50px;
 }

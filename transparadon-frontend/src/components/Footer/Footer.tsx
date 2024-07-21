@@ -4,14 +4,22 @@ const Footer = () => {
   return (
     <div className = 'footer-wrapper'>
         <div className = 'contact'>
-            <h4>
+            <h3>
                 Contact Us!
+            </h3>
+            <h4>
+                danwlung@gmail.com
             </h4>
             <b>
-                danwlung@gmail.com
+                danwspleen@gmail.com
             </b>
+        </div>
+        <div className = 'rights'>
+            <h3>
+                Copyright Daniel Stomach
+            </h3>
             <b>
-                eatmydick@pp.com
+                yum
             </b>
         </div>
     </div>

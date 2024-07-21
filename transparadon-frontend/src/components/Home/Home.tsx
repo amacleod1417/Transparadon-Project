@@ -2,10 +2,12 @@ import React from 'react'
 import donation1 from '../../assets/donation1.svg'
 import donation2 from '../../assets/donation2.png'
 import logo from '../../assets/logo.svg'
+import Footer from '../../components/Footer/Footer'
 
 const Home = () => {
   return (
-    <div className = 'titles'>
+    <div className = 'home'>
+      <div className = 'titles'>
         <h1 className = 'title1'>
             Quick Donations!
         </h1>
@@ -31,6 +33,8 @@ const Home = () => {
         <div className = 'marker'>
           <img src={logo} alt='' className='logo'/>
         </div>
+      </div>
+      <Footer/>
     </div>
   )
 }
