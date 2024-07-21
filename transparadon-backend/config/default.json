@@ -1,6 +1,6 @@
 {
     "mongoURI": "mongodb+srv://amacleod1417:Pumpkin1417@transparadon-cluster.zo2b0sf.mongodb.net/?retryWrites=true&w=majority&appName=Transparadon-Cluster",
-    "jwtSecret": "your_jwt_secret"
+    "jwtSecret": "8VmPI9PiIs"
   }
 
 

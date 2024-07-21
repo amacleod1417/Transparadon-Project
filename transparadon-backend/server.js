@@ -1,15 +1,44 @@
 const express = require('express');
-const connectDB = require('./config/db');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const userRoutes = require('./routes/users');
+const charityRoutes = require('./routes/charities'); // Add this line
+const { createAccount, makePayment } = require('./services/stellarService');
 
 const app = express();
+const port = process.env.PORT || 5000;
 
-connectDB();
+app.use(bodyParser.json());
+app.use(cors());
 
-//Init Middleware
-app.use(express.json({ extended: false }));
-app.use('/api/users', require('./routes/authRoutes'));
-app.use('/api/stellar', require('./routes/stellarRoutes')); // add stellar routes
+app.use('/api/users', userRoutes);
+app.use('/api/charities', charityRoutes); // Add this line
 
-// Start the server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+app.post('/api/stellar/createAccount', async (req, res) => {
+    const { destination } = req.body;
+    try {
+        await createAccount(destination);
+        res.status(200).send('Account created');
+    } catch (error) {
+        res.status(500).send('Error creating account');
+    }
+});
+
+app.post('/api/stellar/makePayment', async (req, res) => {
+    const { destination, amount } = req.body;
+    try {
+        await makePayment(destination, amount);
+        res.status(200).send('Payment made');
+    } catch (error) {
+        res.status(500).send('Error making payment');
+    }
+});
+
+mongoose.connect('mongodb://localhost:27017/transparadon', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+}).then(() => console.log('MongoDB connected'))
+    .catch(err => console.log(err));
+
+app.listen(port, () => console.log(`Server running on port ${port}`));
