@@ -11,9 +11,9 @@ const port = process.env.PORT || 5000;
 
 app.use(bodyParser.json());
 app.use(cors());
-
+app.use('/api/soroban', require('./routes/sorobanRoutes'));
 app.use('/api/users', userRoutes);
-app.use('/api/charities', charityRoutes); // Add this line
+app.use('/api/charities', charityRoutes); 
 
 app.post('/api/stellar/createAccount', async (req, res) => {
     const { destination } = req.body;
