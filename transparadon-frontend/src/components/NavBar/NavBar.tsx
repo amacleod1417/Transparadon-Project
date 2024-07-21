@@ -2,7 +2,11 @@ import React, { useState } from 'react'
 import logo from '../../assets/dino.svg'
 import menu from '../../assets/menu.png'
 
-const NavBar = () => {
+interface NavBarProps {
+  setPage:  (page: string) => void;
+};
+const NavBar = ({setPage}: NavBarProps) => {
+
   return (
     <div className = 'header'>
         <div className = 'logo-wrap'>
@@ -11,16 +15,16 @@ const NavBar = () => {
     <nav>
         <div className = 'links-container'>
           <ul className = 'link'>
-            <a href=''>Home</a>
+            <div onClick={() => setPage("home")}>Home</div>
           </ul>
           <ul className = 'link'>
-            <a href=''>Community Fund</a>
+            <div onClick={() => setPage("donate")}>Community Fund</div>
           </ul>
           <ul className = 'link'>
-            <a href=''>Charities</a>
+            <div onClick={() => setPage("charities")}>Charities</div>
           </ul>
           <ul className = 'link'>
-            <a href=''>Impact Tracking</a>
+            <div onClick={() => setPage("impact")}>Impact Tracking</div>
           </ul>
         </div>
         <div className = 'menu-button'>

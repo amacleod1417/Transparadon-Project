@@ -38,29 +38,31 @@ pub enum DataKey {
 #[contractimpl]
 impl TransparadonContract {
 
-    pub fn donate(env: Env, amount: u64, user: Address) ->Symbol {
-        // logs::log(&format!("Donation of {} from {}", amount, env.caller()));
+    pub fn donate(env: Env, amount: u64, user: Address) -> Symbol {
         if amount <= 0 {
-            panic!("Invalid donation amount")
+            panic!("Invalid donation amount");
         }
-
-        let  is_contributor: bool = env.storage().instance().get(&DataKey::IsContributor((user.clone()))).unwrap_or(false);
-
-        if is_contributor != true { // wait what
-            panic!("User is not a valid contributor")
+    
+        let is_contributor: bool = env.storage().instance().get(&DataKey::IsContributor((user.clone()))).unwrap_or(false);
+    
+        if !is_contributor {
+            panic!("User is not a valid contributor");
         }
-
-        // add their address to the contributors list
+    
+        // Calculate and store the quadratic voting power
+        let voting_power = Self::calculate_quadratic_voting_power(amount);
+        env.storage().instance().set(&DataKey::VotingPower(user.clone()), &voting_power);
+    
+        // Add their address to the contributors list
         let mut contributors: Vec<Address> = env
-                .storage()
-                .instance()
-                .get(&DataKey::Contributors)
-                .unwrap_or(vec![&env, env.current_contract_address()]);
-            contributors.push_back(user.clone());
-            env.storage()
-                .instance()
-                .set(&DataKey::Contributors, &contributors);
-            Self::record_impact(env, user, amount)
+            .storage()
+            .instance()
+            .get(&DataKey::Contributors)
+            .unwrap_or(vec![&env, env.current_contract_address()]);
+        contributors.push_back(user.clone());
+        env.storage().instance().set(&DataKey::Contributors, &contributors);
+    
+        Self::record_impact(env, user, amount)
     }
 
     pub fn calculate_quadratic_voting_power(value: u64) -> u64 {
@@ -81,44 +83,35 @@ impl TransparadonContract {
 
     // Voting 🔥
     
-    pub fn vote(env: Env, user : Address, charity: Address, votes: u64) {
-        // how much power does the current voter have?       
-
-        let voting_power = env.storage().instance().get(&DataKey::VotingPower((user.clone()))).unwrap_or(0);
-        if voting_power == 0 || votes > voting_power {
-            panic!("User has insufficient voting power");
-        }
-
-        let  is_contributor: bool = env.storage().instance().get(&DataKey::IsContributor((user.clone()))).unwrap_or(false);
-        if !is_contributor {
-            panic!("User is not a valid contributor")
-        }
-
-        // add the voting power to the contributor
-        let mut contributors: Vec<Address> = env
-            .storage()
-            .instance()
-            .get(&DataKey::Contributors)
-            .unwrap_or(vec![&env]);
-        env.storage().instance().set(&DataKey::CharityVotes((user)), &1);
-
-        let charity_votes: u64 =
-            env
-            .storage()
-            .instance()
-            .get(DataKey::CharityVotes(charity.clone()))
-            .unwrap_or(0);
-            env
-            .storage()
-            .instance()
-            .set(&DataKey::CharityVotes(charity), &(charity_votes+votes));
-            env
-            .storage()
-            .instance()
-            .set(DataKey::VotingPower(user.clone()), &(voting_power-votes));
-
-        logs::log(&format!("User {} voted {} for charity {}", user, votes, charity));
+    pub fn vote(env: Env, user: Address, charity: Address, votes: u64) {
+    let voting_power = env.storage().instance().get(&DataKey::VotingPower((user.clone()))).unwrap_or(0);
+    if voting_power == 0 || votes > voting_power {
+        panic!("User has insufficient voting power");
     }
+
+    let is_contributor: bool = env.storage().instance().get(&DataKey::IsContributor((user.clone()))).unwrap_or(false);
+    if !is_contributor {
+        panic!("User is not a valid contributor");
+    }
+
+    // Add the voting power to the contributor
+    let mut contributors: Vec<Address> = env
+        .storage()
+        .instance()
+        .get(&DataKey::Contributors)
+        .unwrap_or(vec![&env]);
+    env.storage().instance().set(&DataKey::CharityVotes((user.clone())), &1);
+
+    let charity_votes: u64 = env
+        .storage()
+        .instance()
+        .get(&DataKey::CharityVotes(charity.clone()))
+        .unwrap_or(0);
+    env.storage().instance().set(&DataKey::CharityVotes(charity), &(charity_votes + votes));
+    env.storage().instance().set(&DataKey::VotingPower(user.clone()), &(voting_power - votes));
+
+    logs::log(&format!("User {} voted {} for charity {}", user, votes, charity));
+}
 
     // Contribute to the fund, and store the address of the user who contributed
     pub fn add_contributor(env: Env, contributor: Address) {
