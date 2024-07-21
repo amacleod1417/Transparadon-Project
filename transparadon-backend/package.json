@@ -11,9 +11,16 @@
   "description": "",
   "dependencies": {
     "@stellar/stellar-sdk": "^12.1.0",
+    "axios": "^1.7.2",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "config": "^3.3.12",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
-    "mongoose": "^8.4.4"
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.5.1",
+    "stellar-sdk": "^12.2.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21"
