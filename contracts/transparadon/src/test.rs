@@ -1,7 +1,7 @@
 #![cfg(test)]
 extern crate std;
 
-use super::{token, CharityContract, CharityContractClient};
+use crate::{token, CharityContract, CharityContractClient};
 use soroban_sdk::{testutils::Address as _, Address, BytesN, Env};
 
 fn create_token_contract<'a>(e: &Env, admin: &Address) -> token::Client<'a> {

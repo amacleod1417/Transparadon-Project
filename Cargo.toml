@@ -6,7 +6,7 @@ members = [
 ]
 
 [workspace.dependencies]
-soroban-sdk = "21.0.1-preview.3"
+soroban-sdk = { version = "21.0.1-preview.3", features = ["alloc"] }
 soroban-token-sdk = "21.0.1-preview.3"
 stellar = "=0.1.2-alpha"
 tokio = { version = "1.0", features = ["full"] }
