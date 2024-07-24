@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -11,3 +12,192 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+=======
+@import url('https://fonts.googleapis.com/css2?family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "PT Serif", serif;
+  font-style: normal;
+  box-sizing: border-box;
+}
+
+body{
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+.wrapper{
+  max-width: 1600px;
+  margin: 0 auto;
+  margin-top: 20px;
+  height: 100%;
+}
+
+.header{
+  width: flex;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0px 10px;
+}
+
+.logo-wrap{
+  display: flex;
+}
+
+
+nav{
+  position: relative;
+}
+
+.logo{
+  margin-top: 10px;
+  width: 150px;
+}
+
+.menu-button{
+  display: none;
+  margin-left: 20px;
+}
+
+.links-container{
+  display: flex;
+  flex: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.link{
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  line-height: normal;
+  padding: 10px;
+  opacity: 0.6;
+  border-bottom: 2px solid transparent;
+  transition:
+    opacity 0.3s ease,
+    border-bottom 0.3s ease;
+}
+
+.link:hover{
+  opacity: 0.9;
+  border-bottom: 2px solid #287C83;
+}
+
+
+.link{
+  display: flex;
+  flex: row;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 0px 40px;
+}
+
+@media screen and (max-width: 1082px){  
+  .menu-button{
+    margin-top: 10px;
+    display: flex;
+  }
+  
+  .links-container{
+    position: absolute;
+    right: 0;
+    top: 100%;
+    color: #FFFFFF;
+    background: #287C83;
+    flex-direction: column;
+    z-index: 1;
+    border-radius: 10px;
+    padding: 5px 0;
+    box-shadow: 0 0 5px #222;
+    display: flex;
+  }
+
+  .link{
+    margin: 0;
+  }
+
+  a{
+    display: block;
+    text-align: center;
+    min-width: 150px;
+  }
+
+  &.active a{
+    background: #333;
+    border-width: 1px;
+  }
+
+  .header{
+    justify-content: space-between;
+  }
+}
+
+.titles{
+  font-size: large;
+  text-align: center;
+  margin: 0 auto;
+  margin-top: 50px;
+  padding: 0 50px;
+  max-width: 1200px;
+  color:#287C83;
+}
+
+.title1 {
+  margin-bottom: 10px;
+}
+
+.title2 {
+  margin-bottom: 5%;
+}
+
+.donations {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+}
+
+.donations a:hover{
+  opacity: 0.7;
+}
+
+.donation1, .donation2 {
+  max-width: 900px;
+  width: 100%;
+  padding: 15%;
+}
+
+.marker {
+  margin: 10%;
+}
+
+.footer-wrapper {
+  max-width: 1600px;
+  margin: 0 auto;
+  margin-top: 20px;
+  height: 100%;
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.contact {
+  color: lightgray;
+  margin-bottom: 50px;
+}
+
+.rights {
+  color: lightgray;
+  margin-bottom: 50px;
+}
+>>>>>>> e14995673ae0fa026c88c4c776c02c1a22731939
